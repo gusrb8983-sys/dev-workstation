@@ -70,8 +70,8 @@ x64
 - [x] Docker 기본 운영 (images/ps/ps -a/logs/stats)
 - [x] hello-world 컨테이너 실행
 - [x] ubuntu 컨테이너 실행 + 내부 명령 수행, attach/exec 차이 정리
-- [ ] Dockerfile 작성 및 커스텀 이미지 빌드
-- [ ] 포트 매핑 및 브라우저 접속 확인
+- [x] Dockerfile 작성 및 커스텀 이미지 빌드
+- [x] 포트 매핑 및 브라우저 접속 확인
 - [ ] 바인드 마운트로 변경 반영 검증
 - [ ] Docker 볼륨으로 데이터 영속성 검증 (컨테이너 삭제 전/후)
 - [x] Git 사용자 정보/기본 브랜치 설정 및 `git config --list` 기록
@@ -330,13 +330,80 @@ $ docker ps -a
 
 ## 8. Dockerfile 기반 커스텀 이미지
 
-(다음 단계에서 채움)
+### 선택한 방식
+
+**(A) 웹서버 베이스 이미지 활용 + 정적 콘텐츠/설정 교체** — `nginx:alpine`을 베이스로 사용.
+
+### Dockerfile
+
+```dockerfile
+# 베이스 이미지: 공식 nginx (Alpine 경량 버전)
+FROM nginx:alpine
+
+# 커스텀 포인트 1: 이미지 메타데이터 (관리자 정보, 앱 이름)
+LABEL maintainer="HyunJun Choi <gusrb8983@gmail.com>"
+ENV APP_NAME="dev-workstation-mission"
+
+# 커스텀 포인트 2: 기본 nginx 환영 페이지를 자기소개 정적 페이지로 교체
+COPY app/ /usr/share/nginx/html/
+
+# 커스텀 포인트 3: 헬스체크 - 30초마다 웹서버가 응답하는지 자동 점검
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
+
+EXPOSE 80
+```
+
+### 커스텀 포인트별 목적
+
+| 포인트 | 내용 | 목적 |
+|---|---|---|
+| 정적 콘텐츠 교체 | `app/index.html`(자기소개 페이지)을 nginx 기본 웹 루트로 복사 | nginx 기본 환영 페이지 대신 원하는 콘텐츠 서비스 |
+| 메타데이터 (`LABEL`/`ENV`) | 관리자 정보, 앱 이름 명시 | 이미지 관리/식별 용이 |
+| 헬스체크 | 30초 주기로 `wget`으로 자체 응답 확인 | 컨테이너가 살아있어도 서비스가 죽었는지(예: nginx 프로세스 이상)까지 자동 감지 → `docker ps`에 healthy/unhealthy로 표시 |
+
+### 빌드 / 실행 로그
+
+```bash
+$ docker build -t my-intro-page .
+[+] Building 6.9s (7/7) FINISHED
+ => [internal] load build definition from Dockerfile
+ => [internal] load metadata for docker.io/library/nginx:alpine
+ => [internal] load build context
+ => [1/2] FROM docker.io/library/nginx:alpine@sha256:4a73073bd557c65b759505da037898b...
+ => [2/2] COPY app/ /usr/share/nginx/html/
+ => exporting to image
+ => => naming to docker.io/library/my-intro-page
+
+$ docker images
+REPOSITORY      TAG       IMAGE ID       CREATED          SIZE
+my-intro-page   latest    f69970a35cbe   32 seconds ago   62.4MB
+nginx           latest    4e5db4761e0f   12 days ago      161MB
+ubuntu          latest    de7345b16e94   2 weeks ago      100MB
+hello-world     latest    e2ac70e7319a   4 months ago     10.1kB
+
+$ docker run -d --name intro-page -p 8888:80 my-intro-page
+50c8568d851dabff1b3c88a96505662aeb128b577e13901008c7328fc0a3d181
+
+$ docker ps
+CONTAINER ID   IMAGE           COMMAND                   CREATED         STATUS                   PORTS                                     NAMES
+50c8568d851d   my-intro-page   "/docker-entrypoint.…"   6 seconds ago   Up 5 seconds (healthy)   0.0.0.0:8888->80/tcp, [::]:8888->80/tcp   intro-page
+```
+
+- 빌드 성공, 이미지 크기 62.4MB (alpine 기반이라 nginx:latest의 161MB보다 훨씬 가벼움)
+- 실행 즉시 `STATUS`에 `(healthy)` 표시 → HEALTHCHECK 정상 작동 확인
 
 ---
 
 ## 9. 포트 매핑 및 접속 증거
 
-(다음 단계에서 채움)
+`docker run -d --name intro-page -p 8888:80 my-intro-page` 로 호스트 8888번 포트를 컨테이너 80번 포트(nginx)로 매핑.
+
+브라우저에서 `http://localhost:8888` 접속 결과 (주소창 + 응답 화면):
+
+[images/port-mapping-localhost8888.png](images/port-mapping-localhost8888.png)
+
+정상적으로 자기소개 페이지가 렌더링됨을 확인.
 
 ---
 

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HyunJun Choi | dev-workstation</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    max-width: 480px;
+    width: 100%;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 16px;
+    padding: 40px 32px;
+    text-align: center;
+  }
+  .avatar {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2f81f7, #a371f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 auto 20px;
+    color: #fff;
+  }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .role { color: #8b949e; font-size: 14px; margin-bottom: 20px; }
+  .bio {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #c9d1d9;
+    margin-bottom: 24px;
+  }
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .chip {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #58a6ff;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 999px;
+  }
+  .footer {
+    font-size: 12px;
+    color: #6e7681;
+    border-top: 1px solid #21262d;
+    padding-top: 16px;
+  }
+  .footer code {
+    background: #21262d;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #a5d6ff;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="avatar">HJ</div>
+    <h1>HyunJun Choi</h1>
+    <div class="role">Dev Workstation Mission</div>
+    <p class="bio">
+      터미널, Docker, Git을 직접 손으로 세팅하며 개발 환경을 구성하는 중입니다.<br>
+      이 페이지는 Dockerfile로 빌드한 nginx 컨테이너가 서비스하고 있습니다.
+    </p>
+    <div class="stack">
+      <span class="chip">Terminal / zsh</span>
+      <span class="chip">Docker (OrbStack)</span>
+      <span class="chip">Git &amp; GitHub</span>
+      <span class="chip">nginx</span>
+    </div>
+    <div class="footer">
+      served from a container &middot; built with <code>Dockerfile</code>
+    </div>
+  </div>
+</body>
+</html>
