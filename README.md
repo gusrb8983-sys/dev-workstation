@@ -66,8 +66,8 @@ x64
 
 - [x] 터미널 기본 조작 (조회/이동/생성/복사/이동·이름변경/삭제/내용확인/빈파일생성)
 - [x] 파일/디렉토리 권한 확인 및 변경 (각 1건 이상)
-- [ ] Docker 설치 점검 (`docker --version`, `docker info`)
-- [ ] Docker 기본 운영 (images/ps/ps -a/logs/stats)
+- [x] Docker 설치 점검 (`docker --version`, `docker info`)
+- [x] Docker 기본 운영 (images/ps/ps -a/logs/stats)
 - [ ] hello-world 컨테이너 실행
 - [ ] ubuntu 컨테이너 실행 + 내부 명령 수행, attach/exec 차이 정리
 - [ ] Dockerfile 작성 및 커스텀 이미지 빌드
@@ -190,7 +190,75 @@ drwx------  2 gusrb89838983  gusrb89838983  64  7 28 18:31 secret_dir
 
 ## 6. Docker 설치 점검 및 기본 운영
 
-(다음 단계에서 채움)
+### 6-1. 설치/버전 점검
+
+```bash
+$ docker --version
+Docker version 28.5.2, build ecc6942
+
+$ docker info
+Client:
+ Version:    28.5.2
+ Context:    orbstack
+ Debug Mode: false
+Server:
+ Containers: 3
+  Running: 1
+  Paused: 0
+  Stopped: 2
+ Images: 2
+ Server Version: 28.5.2
+ Storage Driver: overlay2
+ Operating System: OrbStack
+ OSType: linux
+ Architecture: x86_64
+ CPUs: 6
+ Total Memory: 15.67GiB
+ Docker Root Dir: /var/lib/docker
+ Product License: Community Engine
+```
+*(전체 출력 중 핵심 항목만 발췌. Docker 런타임: OrbStack, Context: orbstack)*
+
+- `docker --version` → CLI 정상 설치 확인
+- `docker info` → 데몬이 정상 응답, 서버 정보(OS/아키텍처/스토리지 드라이버 등) 확인 → **Docker 정상 동작 확인 완료**
+
+### 6-2. 기본 운영 명령
+
+```bash
+$ docker images
+REPOSITORY    TAG       IMAGE ID       CREATED        SIZE
+nginx         latest    4e5db4761e0f   12 days ago    161MB
+hello-world   latest    e2ac70e7319a   4 months ago   10.1kB
+
+$ docker ps
+CONTAINER ID   IMAGE     COMMAND                   CREATED       STATUS       PORTS                                     NAMES
+ba12d2199717   nginx     "/docker-entrypoint.…"   4 hours ago   Up 4 hours   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   my-nginx2
+
+$ docker ps -a
+CONTAINER ID   IMAGE         COMMAND                   CREATED       STATUS                   PORTS                                     NAMES
+ba12d2199717   nginx         "/docker-entrypoint.…"   4 hours ago   Up 4 hours               0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   my-nginx2
+503ca04cd96f   nginx         "/docker-entrypoint.…"   4 hours ago   Exited (0) 4 hours ago                                             my-nginx
+70e85841ecc0   hello-world   "/hello"                  4 hours ago   Exited (0) 4 hours ago                                             competent_margulis
+
+$ docker logs my-nginx2
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2026/07/28 05:55:15 [notice] 1#1: using the "epoll" event method
+2026/07/28 05:55:15 [notice] 1#1: nginx/1.31.3
+2026/07/28 05:55:15 [notice] 1#1: start worker process 29
+...
+192.168.215.1 - - [28/Jul/2026:06:21:27 +0000] "GET / HTTP/1.1" 200 216 ...
+192.168.215.1 - - [28/Jul/2026:06:40:59 +0000] "GET / HTTP/1.1" 304 0 ...
+
+$ docker stats --no-stream
+CONTAINER ID   NAME        CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O         PIDS
+ba12d2199717   my-nginx2   0.00%     5.801MiB / 15.67GiB   0.04%     9.29kB / 4.74kB   28.1MB / 8.19kB   7
+```
+
+- `docker images` → 로컬에 nginx, hello-world 2개 이미지 존재 확인
+- `docker ps` → 현재 실행 중인 컨테이너(`my-nginx2`) 1개 확인
+- `docker ps -a` → 종료된 컨테이너까지 포함 총 3개 확인 (실행/중지 상태 구분됨)
+- `docker logs` → nginx 시작 로그 + 실제 HTTP 접속 로그 확인
+- `docker stats --no-stream` → CPU/메모리 실시간 사용량 1회 스냅샷 확인 (`--no-stream` 미사용 시 화면이 계속 갱신되어 로그로 남기기 어려움)
 
 ---
 
