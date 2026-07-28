@@ -65,7 +65,7 @@ x64
 ## 3. 수행 항목 체크리스트
 
 - [x] 터미널 기본 조작 (조회/이동/생성/복사/이동·이름변경/삭제/내용확인/빈파일생성)
-- [ ] 파일/디렉토리 권한 확인 및 변경 (각 1건 이상)
+- [x] 파일/디렉토리 권한 확인 및 변경 (각 1건 이상)
 - [ ] Docker 설치 점검 (`docker --version`, `docker info`)
 - [ ] Docker 기본 운영 (images/ps/ps -a/logs/stats)
 - [ ] hello-world 컨테이너 실행
@@ -153,7 +153,38 @@ drwxr-xr-x  7 gusrb89838983  gusrb89838983  224  7 28 18:16 ..
 
 ## 5. 권한 실습
 
-(다음 단계에서 채움)
+`practice` 폴더 안에서 파일 1개, 디렉토리 1개에 대해 권한 변경 전/후 비교.
+
+### 5-1. 파일 권한 (memo.txt)
+
+```bash
+$ ls -l memo.txt
+-rw-r--r--  1 gusrb89838983  gusrb89838983  18  7 28 18:13 memo.txt
+
+$ chmod 600 memo.txt
+$ ls -l memo.txt
+-rw-------  1 gusrb89838983  gusrb89838983  18  7 28 18:13 memo.txt
+```
+
+- 변경 전: `-rw-r--r--` (소유자 rw, 그룹 r, 기타 r)
+- 변경 후: `-rw-------` (소유자만 rw, 그룹/기타 접근 불가)
+- 명령: `chmod 600` → 소유자 read+write(4+2), 그룹/기타 없음(0)
+
+### 5-2. 디렉토리 권한 (secret_dir)
+
+```bash
+$ mkdir secret_dir
+$ ls -ld secret_dir
+drwxr-xr-x  2 gusrb89838983  gusrb89838983  64  7 28 18:31 secret_dir
+
+$ chmod 700 secret_dir
+$ ls -ld secret_dir
+drwx------  2 gusrb89838983  gusrb89838983  64  7 28 18:31 secret_dir
+```
+
+- 변경 전: `drwxr-xr-x` (그룹/기타도 읽기+진입 가능)
+- 변경 후: `drwx------` (소유자만 읽기/쓰기/진입 가능, 그룹/기타 완전 차단)
+- 명령: `chmod 700` → 소유자 read+write+execute(4+2+1), 그룹/기타 없음(0)
 
 ---
 
