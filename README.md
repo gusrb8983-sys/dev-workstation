@@ -73,7 +73,7 @@ x64
 - [x] Dockerfile 작성 및 커스텀 이미지 빌드
 - [x] 포트 매핑 및 브라우저 접속 확인
 - [x] 바인드 마운트로 변경 반영 검증
-- [ ] Docker 볼륨으로 데이터 영속성 검증 (컨테이너 삭제 전/후)
+- [x] Docker 볼륨으로 데이터 영속성 검증 (컨테이너 삭제 전/후)
 - [x] Git 사용자 정보/기본 브랜치 설정 및 `git config --list` 기록
 - [x] GitHub 로그인 및 VSCode 연동 증거 첨부
 
@@ -448,7 +448,38 @@ $ curl http://localhost:8888 | grep "HyunJun"
 
 ## 11. 볼륨 영속성 검증
 
-(다음 단계에서 채움)
+Docker 볼륨을 생성하여 컨테이너에 연결하고, 컨테이너를 완전히 삭제한 뒤에도 데이터가 유지되는지 검증.
+
+```bash
+# 1. 볼륨 생성
+$ docker volume create mydata
+$ docker volume ls
+DRIVER    VOLUME NAME
+local     mydata
+
+# 2. 볼륨을 연결한 컨테이너 실행 + 데이터 기록
+$ docker run -d --name vol-test -v mydata:/data ubuntu sleep infinity
+$ docker exec vol-test bash -c 'echo "persistent data test" > /data/message.txt'
+$ docker exec vol-test cat /data/message.txt
+persistent data test
+
+# 3. 컨테이너 완전 삭제
+$ docker stop vol-test
+$ docker rm vol-test
+$ docker ps -a
+(vol-test가 목록에서 완전히 사라짐 확인)
+
+# 4. 삭제 후에도 볼륨 자체는 남아있음
+$ docker volume ls
+DRIVER    VOLUME NAME
+local     mydata
+
+# 5. 새 컨테이너로 같은 볼륨을 재연결하여 데이터 확인
+$ docker run --rm -v mydata:/data ubuntu cat /data/message.txt
+persistent data test
+```
+
+**결론:** `vol-test` 컨테이너를 `docker rm`으로 완전히 삭제했음에도, 이후 생성한 전혀 다른 컨테이너에서 동일 볼륨(`mydata`)을 연결하니 이전에 저장한 데이터(`persistent data test`)가 그대로 유지됨을 확인. 컨테이너(임시적, 언제든 삭제 가능)와 볼륨(영속적 데이터 저장소)이 분리되어 있다는 Docker의 핵심 설계 원칙이 실증됨.
 
 ---
 
@@ -466,8 +497,6 @@ credential.helper=osxkeychain
 user.name=HyunJun Choi
 user.email=gusrb8983@gmail.com
 ```
-
-(나머지는 다음 단계에서 채움)
 
 ### 12-2. 로컬 저장소 초기화 및 원격 연결
 
@@ -523,12 +552,12 @@ VSCode에서 `~/Desktop/dev-workstation` 폴더를 열고 Source Control 패널�
 - 해결: Settings → Developer settings → Personal access tokens에서 `repo` 스코프의 classic 토큰을 발급하여 Password 자리에 입력. `credential.helper=osxkeychain` 설정으로 이후 macOS 키체인에 자동 저장되어 재인증 불필요해짐
 - (토큰 값 자체는 보안상 기록하지 않음)
 
-### 트러블슈팅 2
+### 트러블슈팅 2: `docker attach` detach 키 조합(`Ctrl+P, Ctrl+Q`) 미동작
 
-- 문제:
-- 원인 가설:
-- 확인:
-- 해결/대안:
+- 문제: `docker attach`로 컨테이너에 연결한 뒤, 컨테이너를 종료시키지 않고 빠져나오는 표준 키 조합인 `Ctrl+P` → `Ctrl+Q`를 입력했으나 반응이 없었음
+- 원인 가설: 사용 중인 터미널 애플리케이션 또는 macOS 키보드/단축키 설정에서 해당 다중 키 시퀀스가 다른 기능에 선점되어 있거나 전달되지 않는 것으로 추정
+- 확인: 여러 차례 재시도했으나 동일하게 반응 없음을 확인. 대신 `docker exec`로 진입했을 때는 별도 프로세스가 생성되어 `exit`로 나가도 컨테이너가 유지된다는 점을 이용해, 목적(컨테이너를 살려둔 채 내부 확인)은 `exec`로 우회 가능함을 파악
+- 해결/대안: 당장은 `attach` 상태에서 `exit`로 나가 컨테이너가 실제로 종료되는 것을 그대로 관찰 자료로 활용함 (attach와 exec의 차이를 증명하는 데이터로 전환). 컨테이너를 살려둔 채 내부를 확인할 때는 `exec -it`를 기본으로 사용하고, `attach`가 꼭 필요하다면 iTerm2 등 다른 터미널 앱이나 `tmux`/`screen` 세션 안에서 시도하는 것을 대안으로 고려
 
 ---
 
