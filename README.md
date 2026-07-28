@@ -64,7 +64,7 @@ x64
 
 ## 3. 수행 항목 체크리스트
 
-- [ ] 터미널 기본 조작 (조회/이동/생성/복사/이동·이름변경/삭제/내용확인/빈파일생성)
+- [x] 터미널 기본 조작 (조회/이동/생성/복사/이동·이름변경/삭제/내용확인/빈파일생성)
 - [ ] 파일/디렉토리 권한 확인 및 변경 (각 1건 이상)
 - [ ] Docker 설치 점검 (`docker --version`, `docker info`)
 - [ ] Docker 기본 운영 (images/ps/ps -a/logs/stats)
@@ -74,14 +74,80 @@ x64
 - [ ] 포트 매핑 및 브라우저 접속 확인
 - [ ] 바인드 마운트로 변경 반영 검증
 - [ ] Docker 볼륨으로 데이터 영속성 검증 (컨테이너 삭제 전/후)
-- [ ] Git 사용자 정보/기본 브랜치 설정 및 `git config --list` 기록
-- [ ] GitHub 로그인 및 VSCode 연동 증거 첨부
+- [x] Git 사용자 정보/기본 브랜치 설정 및 `git config --list` 기록
+- [x] GitHub 로그인 및 VSCode 연동 증거 첨부
 
 ---
 
 ## 4. 터미널 조작 로그
 
-(다음 단계에서 채움)
+`~/Desktop/dev-workstation` 안에서 실습. 현재 위치 확인 → 목록 확인(숨김 포함) → 디렉토리 생성/이동 → 빈 파일 생성 → 내용 확인/작성 → 복사 → 이동/이름변경 → 삭제 순으로 수행.
+
+```bash
+$ pwd
+/Users/gusrb89838983/Desktop/dev-workstation
+
+$ ls -al
+total 32
+drwxr-xr-x   6 gusrb89838983  gusrb89838983   192  7 28 18:10 .
+drwx------+ 19 gusrb89838983  gusrb89838983   608  7 28 18:03 ..
+-rw-r--r--@  1 gusrb89838983  gusrb89838983  6148  7 28 18:03 .DS_Store
+drwxr-xr-x  13 gusrb89838983  gusrb89838983   416  7 28 18:04 .git
+drwxr-xr-x   4 gusrb89838983  gusrb89838983   128  7 28 18:03 images
+-rw-r--r--@  1 gusrb89838983  gusrb89838983  5766  7 28 17:45 README.md
+
+$ mkdir practice
+$ cd practice
+$ pwd
+/Users/gusrb89838983/Desktop/dev-workstation/practice
+
+$ touch memo.txt
+$ ls -al
+total 0
+drwxr-xr-x  3 gusrb89838983  gusrb89838983   96  7 28 18:12 .
+drwxr-xr-x  7 gusrb89838983  gusrb89838983  224  7 28 18:11 ..
+-rw-r--r--  1 gusrb89838983  gusrb89838983    0  7 28 18:12 memo.txt
+
+$ cat memo.txt
+(빈 파일이므로 출력 없음)
+
+$ echo "terminal practice" > memo.txt
+$ cat memo.txt
+terminal practice
+
+$ cp memo.txt memo_copy.txt
+$ ls -al
+total 16
+-rw-r--r--  1 gusrb89838983  gusrb89838983   18  7 28 18:14 memo_copy.txt
+-rw-r--r--  1 gusrb89838983  gusrb89838983   18  7 28 18:13 memo.txt
+
+$ mv memo_copy.txt memo_renamed.txt
+$ ls -al
+total 16
+-rw-r--r--  1 gusrb89838983  gusrb89838983   18  7 28 18:14 memo_renamed.txt
+-rw-r--r--  1 gusrb89838983  gusrb89838983   18  7 28 18:13 memo.txt
+
+# mv로 "이동"까지 확인 (상위 폴더로 이동 후 다시 복귀)
+$ mv memo_renamed.txt ../
+$ cd ..
+$ ls -al
+... memo_renamed.txt 가 dev-workstation 폴더로 이동된 것 확인 ...
+$ mv memo_renamed.txt practice/
+$ cd practice
+$ ls -al
+total 16
+-rw-r--r--  1 gusrb89838983  gusrb89838983   18  7 28 18:14 memo_renamed.txt
+-rw-r--r--  1 gusrb89838983  gusrb89838983   18  7 28 18:13 memo.txt
+
+$ rm memo_renamed.txt
+$ ls -al
+total 8
+drwxr-xr-x  3 gusrb89838983  gusrb89838983   96  7 28 18:16 .
+drwxr-xr-x  7 gusrb89838983  gusrb89838983  224  7 28 18:16 ..
+-rw-r--r--  1 gusrb89838983  gusrb89838983   18  7 28 18:13 memo.txt
+```
+
+> 참고: 실습 중 `cat memo.txxt`, `mv memo.renamed.txt practice/` 등 오타로 인한 `No such file or directory` 에러를 실제로 겪었고, 파일명을 정확히 재입력하여 해결함. (별도 트러블슈팅 항목으로 분리하지 않고 로그 흐름 그대로 남김)
 
 ---
 
@@ -181,7 +247,10 @@ branch 'main' set up to track 'origin/main'.
 
 ### 12-3. VSCode GitHub 연동
 
-(다음 단계에서 채움 — VSCode Accounts 아이콘에서 GitHub 로그인 + Source Control 패널 스크린샷 예정)
+VSCode에서 `~/Desktop/dev-workstation` 폴더를 열고 Source Control 패널에서 로컬 커밋 그래프와 원격(GitHub) 연동 상태(클라우드 아이콘)를 확인. 이어서 좌하단 계정 메뉴에서 GitHub 계정(`gusrb8983-sys`)으로 로그인되어 있음을 확인.
+
+- Source Control 패널 (커밋 그래프 + main 브랜치 + 원격 연동 아이콘): [images/vscode-source-control.png](images/vscode-source-control.png)
+- 계정 메뉴 (`gusrb8983-sys (GitHub)` 로그인 상태): [images/vscode-github-account.png](images/vscode-github-account.png)
 
 ---
 
