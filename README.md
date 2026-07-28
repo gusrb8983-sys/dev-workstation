@@ -20,7 +20,7 @@
 | 항목 | 값 |
 |---|---|
 | OS | macOS 15.7.4 (Sequoia), Build 24G517 |
-| CPU 아키텍처 | (uname -m 결과 채우기) |
+| CPU 아키텍처 | x86_64 |
 | 쉘 | zsh 5.9 (/bin/zsh) |
 | 터미널 | macOS 기본 Terminal |
 | Git | git version 2.53.0 |
@@ -129,18 +129,71 @@ x64
 
 ## 12. Git 설정 및 GitHub/VSCode 연동
 
-(다음 단계에서 채움)
+### 12-1. 사용자 정보 확인
+
+```bash
+$ git config --global user.name
+HyunJun Choi
+$ git config --global user.email
+gusrb8983@gmail.com
+$ git config --list
+credential.helper=osxkeychain
+user.name=HyunJun Choi
+user.email=gusrb8983@gmail.com
+```
+
+(나머지는 다음 단계에서 채움)
+
+### 12-2. 로컬 저장소 초기화 및 원격 연결
+
+```bash
+$ cd ~/Desktop/dev-workstation
+$ git init
+/Users/gusrb89838983/Desktop/dev-workstation/.git/ 안의 기존 깃 저장소를 다시 초기화했습니다
+$ git status
+현재 브랜치 main
+아직 커밋이 없습니다
+추적하지 않는 파일:
+  README.md
+
+$ git remote add origin https://github.com/gusrb8983-sys/dev-workstation.git
+$ git branch -M main
+$ git add README.md
+$ git commit -m "docs: init readme"
+[main (최상위-커밋) bf5a7d9] docs: init readme
+ 1 file changed, 156 insertions(+)
+ create mode 100644 README.md
+$ git push -u origin main
+Username for 'https://github.com': gusrb8983-sys
+Password for 'https://gusrb8983-sys@github.com':
+오브젝트 나열하는 중: 3, 완료.
+오브젝트 개수 세는 중: 100% (3/3), 완료.
+Delta compression using up to 6 threads
+오브젝트 압축하는 중: 100% (2/2), 완료.
+오브젝트 쓰는 중: 100% (3/3), 1.75 KiB | 1.75 MiB/s, 완료.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/gusrb8983-sys/dev-workstation.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+```
+
+원격 저장소: https://github.com/gusrb8983-sys/dev-workstation
+
+### 12-3. VSCode GitHub 연동
+
+(다음 단계에서 채움 — VSCode Accounts 아이콘에서 GitHub 로그인 + Source Control 패널 스크린샷 예정)
 
 ---
 
 ## 13. 트러블슈팅
 
-### 트러블슈팅 1
+### 트러블슈팅 1: `git push` 시 인증 실패
 
-- 문제:
-- 원인 가설:
-- 확인:
-- 해결/대안:
+- 문제: `git push -u origin main` 실행 시 Username/Password를 요구했고, GitHub 비밀번호를 그대로 입력하면 인증이 거부됨
+- 원인 가설: GitHub가 2021.08부터 HTTPS 원격 저장소에 대한 비밀번호 인증(Password Authentication)을 폐지하고 Personal Access Token(PAT) 또는 SSH 키만 허용함
+- 확인: GitHub 공식 문서(Token authentication requirements) 및 비밀번호 입력 시 인증 실패 재현으로 확인
+- 해결: Settings → Developer settings → Personal access tokens에서 `repo` 스코프의 classic 토큰을 발급하여 Password 자리에 입력. `credential.helper=osxkeychain` 설정으로 이후 macOS 키체인에 자동 저장되어 재인증 불필요해짐
+- (토큰 값 자체는 보안상 기록하지 않음)
 
 ### 트러블슈팅 2
 
