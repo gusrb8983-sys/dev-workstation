@@ -72,7 +72,7 @@ x64
 - [x] ubuntu 컨테이너 실행 + 내부 명령 수행, attach/exec 차이 정리
 - [x] Dockerfile 작성 및 커스텀 이미지 빌드
 - [x] 포트 매핑 및 브라우저 접속 확인
-- [ ] 바인드 마운트로 변경 반영 검증
+- [x] 바인드 마운트로 변경 반영 검증
 - [ ] Docker 볼륨으로 데이터 영속성 검증 (컨테이너 삭제 전/후)
 - [x] Git 사용자 정보/기본 브랜치 설정 및 `git config --list` 기록
 - [x] GitHub 로그인 및 VSCode 연동 증거 첨부
@@ -409,7 +409,40 @@ CONTAINER ID   IMAGE           COMMAND                   CREATED         STATUS 
 
 ## 10. 바인드 마운트 검증
 
-(다음 단계에서 채움)
+호스트의 `app/` 폴더를 컨테이너의 nginx 웹 루트(`/usr/share/nginx/html`)에 바인드 마운트하여, 호스트 파일 수정이 재빌드 없이 즉시 컨테이너에 반영되는지 검증. 대조군으로 마운트 없이(이미지에 파일이 고정된) 실행 중인 `intro-page`(8888)와 비교.
+
+```bash
+# 바인드 마운트로 컨테이너 실행
+$ docker run -d --name intro-page-mounted -p 9999:80 \
+    -v ~/Desktop/dev-workstation/app:/usr/share/nginx/html my-intro-page
+$ docker ps
+CONTAINER ID   IMAGE           STATUS                    PORTS                     NAMES
+3225f32ce75c   my-intro-page   Up (health: starting)     0.0.0.0:9999->80/tcp     intro-page-mounted
+50c8568d851d   my-intro-page   Up (healthy)               0.0.0.0:8888->80/tcp     intro-page
+
+# 변경 전 확인
+$ curl http://localhost:9999 | grep "HyunJun"
+<title>HyunJun Choi | dev-workstation</title>
+    <h1>HyunJun Choi</h1>
+
+# 호스트 파일 직접 수정 (Docker 명령 아님, 순수 파일 편집)
+$ sed -i '' 's/HyunJun Choi/HyunJun Choi (BIND MOUNT TEST)/' app/index.html
+$ cat app/index.html | grep "BIND MOUNT"
+<title>HyunJun Choi (BIND MOUNT TEST) | dev-workstation</title>
+    <h1>HyunJun Choi (BIND MOUNT TEST)</h1>
+
+# 재빌드/재시작 없이 마운트된 컨테이너 재확인 → 변경 즉시 반영됨
+$ curl http://localhost:9999 | grep "BIND MOUNT"
+<title>HyunJun Choi (BIND MOUNT TEST) | dev-workstation</title>
+    <h1>HyunJun Choi (BIND MOUNT TEST)</h1>
+
+# 대조군: 마운트 없는 컨테이너는 영향 없음 (이미지에 파일이 고정되어 있음)
+$ curl http://localhost:8888 | grep "HyunJun"
+<title>HyunJun Choi | dev-workstation</title>
+    <h1>HyunJun Choi</h1>
+```
+
+**결론:** 바인드 마운트된 컨테이너는 호스트 파일 변경이 즉시(재빌드/재시작 불필요) 반영되지만, 이미지에 `COPY`로 고정된 컨테이너는 호스트 파일이 바뀌어도 영향받지 않음. 개발 중 코드 변경을 즉시 확인하고 싶을 때 바인드 마운트가 유용한 이유가 실증됨.
 
 ---
 
