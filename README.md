@@ -68,8 +68,8 @@ x64
 - [x] 파일/디렉토리 권한 확인 및 변경 (각 1건 이상)
 - [x] Docker 설치 점검 (`docker --version`, `docker info`)
 - [x] Docker 기본 운영 (images/ps/ps -a/logs/stats)
-- [ ] hello-world 컨테이너 실행
-- [ ] ubuntu 컨테이너 실행 + 내부 명령 수행, attach/exec 차이 정리
+- [x] hello-world 컨테이너 실행
+- [x] ubuntu 컨테이너 실행 + 내부 명령 수행, attach/exec 차이 정리
 - [ ] Dockerfile 작성 및 커스텀 이미지 빌드
 - [ ] 포트 매핑 및 브라우저 접속 확인
 - [ ] 바인드 마운트로 변경 반영 검증
@@ -264,7 +264,67 @@ ba12d2199717   my-nginx2   0.00%     5.801MiB / 15.67GiB   0.04%     9.29kB / 4.
 
 ## 7. 컨테이너 실행 실습 (hello-world / ubuntu)
 
-(다음 단계에서 채움)
+### 7-1. hello-world 실행
+
+```bash
+$ docker run hello-world
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+...
+```
+→ 정상 실행 확인 (이미지 pull → 컨테이너 생성 → 메시지 출력 → 자동 종료)
+
+### 7-2. ubuntu 컨테이너 진입 + 내부 명령 수행
+
+```bash
+$ docker run -it ubuntu bash
+Unable to find image 'ubuntu:latest' locally
+latest: Pulling from library/ubuntu
+Status: Downloaded newer image for ubuntu:latest
+root@69be7369b8b2:/# ls
+bin   dev  home  lib64  mnt  proc  run   srv  tmp  var
+boot  etc  lib   media  opt  root  sbin  sys  usr
+root@69be7369b8b2:/# echo "hello from inside container"
+hello from inside container
+root@69be7369b8b2:/# cat /etc/os-release
+PRETTY_NAME="Ubuntu 26.04 LTS"
+NAME="Ubuntu"
+...
+root@69be7369b8b2:/# exit
+```
+→ macOS 호스트와 별개로, 컨테이너 내부는 독립된 Ubuntu 26.04 리눅스 환경임을 `/etc/os-release`로 확인 (격리된 실행 환경 검증)
+
+### 7-3. attach vs exec 차이 관찰
+
+같은 컨테이너(`ubuntu_test`, 백그라운드 실행)를 `exec`와 `attach` 두 방식으로 각각 진입하여 `ps aux`로 프로세스 목록 비교.
+
+**exec로 진입 (`docker exec -it ubuntu_test bash`)**
+```bash
+root@bffccc4f16d5:/# ps aux
+USER   PID  COMMAND
+root     1  bash      ← 컨테이너 생성 시 시작된 원본(메인) 프로세스
+root     8  bash      ← exec로 새로 생성된 프로세스
+root    15  ps aux
+root@bffccc4f16d5:/# exit
+$ docker ps
+... ubuntu_test ... Up About a minute ...   ← exit 이후에도 컨테이너 계속 실행 중
+```
+
+**attach로 진입 (`docker attach ubuntu_test`)**
+```bash
+root@bffccc4f16d5:/# ps aux
+USER   PID  COMMAND
+root     1  bash      ← 원본 메인 프로세스에 직접 연결됨 (새 프로세스 생성 없음)
+root    19  ps aux
+root@bffccc4f16d5:/# exit
+$ docker ps -a
+... ubuntu_test ... Exited (0) 9 seconds ago ...   ← exit 이후 컨테이너 자체가 종료됨
+```
+
+**관찰 결론:**
+- `exec -it`는 컨테이너 안에 **새 프로세스를 추가로 생성**하여 연결한다. 그 셸을 `exit`해도 원본 메인 프로세스(PID 1)는 살아있으므로 컨테이너는 계속 실행된다.
+- `attach`는 컨테이너의 **메인 프로세스(PID 1)에 직접 연결**한다. 이 상태에서 `exit`하면 메인 프로세스 자체가 종료되어 컨테이너 전체가 멈춘다.
+- 따라서 컨테이너를 계속 살려둔 채 잠깐 들여다보고 싶다면 `exec`가 안전하고, `attach`를 쓸 경우 반드시 `Ctrl+P, Ctrl+Q`로 detach해야 한다 (본 실습 환경에서는 해당 키 조합이 동작하지 않아 `exit`로 종료하며 차이를 직접 확인함).
 
 ---
 
